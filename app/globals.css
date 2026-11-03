@@ -1,0 +1,224 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+/*
+  CityMood design tokens (Direction 1: Window to Badagry)
+  Copied verbatim from docs/design/tokens/tokens.css, the source of truth.
+  Change values there first, then mirror them here.
+  Use these variables everywhere. Do not hard-code hex values in components.
+*/
+
+:root {
+  /* Brand colour (sampled from the supplied logo) */
+  --cm-lime: #9AFF01;          /* fills, markers, rules, text on black ONLY */
+  --cm-black: #000000;         /* masthead, footer, headlines, body text */
+  --cm-white: #FFFFFF;         /* reading background */
+
+  /* Neutrals */
+  --cm-paper: #F3F3EF;         /* background bands, ad slots, prototype banner */
+  --cm-rule: #D9D9D4;          /* 1px dividers on white */
+  --cm-rule-dark: #333330;     /* 1px dividers on black */
+  --cm-meta: #5C5C58;          /* dates, captions, labels. 6.7:1 on white */
+  --cm-meta-on-dark: #B8B8B2;  /* secondary text on black. 10.5:1 */
+  --cm-ink-soft: #222222;      /* standfirsts and summaries */
+  --cm-ad-border: #8A8A84;     /* dashed outline on empty ad slots; admin field borders */
+
+  /* Admin portal (ADMIN_SPEC.md §4) */
+  --cm-admin-nav-active: #1A1A18; /* active sidebar item, on black */
+
+  /* Focus */
+  --cm-focus-on-light: #000000;
+  --cm-focus-on-dark: #9AFF01;
+
+  /* Typography. Differs from tokens.css only by the metric-matched fallback faces (see fonts.css). */
+  --cm-font-serif: "Source Serif 4", "Source Serif 4 Fallback", Georgia, "Times New Roman", serif;   /* headlines */
+  --cm-font-sans: "Source Sans 3", "Source Sans 3 Fallback", "Helvetica Neue", Arial, sans-serif;   /* UI, body, meta */
+
+  /* Type scale: mobile first, desktop overrides below */
+  --cm-fs-lead: 30px;       --cm-lh-lead: 1.08;   /* lead story headline, serif 700 */
+  --cm-fs-feature: 26px;    --cm-lh-feature: 1.1; /* feature headline (Culture), serif 700 */
+  --cm-fs-band: 30px;       --cm-lh-band: 1;      /* "People of Badagry", serif 700 */
+  --cm-fs-card-lg: 24px;    --cm-lh-card-lg: 1.12;/* section lead card, serif 700 */
+  --cm-fs-card: 19px;       --cm-lh-card: 1.2;    /* standard card, serif 700 */
+  --cm-fs-list: 18px;       --cm-lh-list: 1.25;   /* headline-only list items, serif 600 */
+  --cm-fs-standfirst: 17px; --cm-lh-standfirst: 1.5; /* sans 400 */
+  --cm-fs-summary: 16px;    --cm-lh-summary: 1.45;   /* sans 400 */
+  --cm-fs-section: 19px;    /* section heading, sans 800 uppercase */
+  --cm-fs-kicker: 13px;     /* category label, sans 800 uppercase, tracking 0.1em */
+  --cm-fs-meta: 13px;       /* bylines, times, sans 400/700 */
+  --cm-fs-nav: 15px;        /* section nav, sans 700 */
+  --cm-fs-label: 11px;      /* "Advertisement", "Breaking", sans 700-800 uppercase, tracking 0.12-0.14em */
+  --cm-tracking-caps: 0.1em;
+  --cm-tracking-tagline: 0.42em; /* "WINDOW TO BADAGRY", sans 300 italic */
+
+  /* Spacing (4px base) */
+  --cm-space-1: 4px;
+  --cm-space-2: 8px;
+  --cm-space-3: 12px;
+  --cm-space-4: 16px;
+  --cm-space-5: 20px;
+  --cm-space-6: 24px;
+  --cm-space-7: 28px;
+  --cm-space-8: 32px;
+  --cm-space-10: 40px;
+  --cm-space-12: 48px;
+  --cm-space-14: 56px;
+
+  /* Layout */
+  --cm-container: 1240px;   /* content max width */
+  --cm-gutter: 16px;        /* page side padding, 24px from 640px */
+  --cm-tap: 44px;           /* minimum touch target */
+
+  /* Rules and marks */
+  --cm-rule-section: 6px solid var(--cm-black);  /* top of every section header */
+  --cm-rule-hair: 1px solid var(--cm-rule);
+  --cm-rule-nav: 2px solid var(--cm-black);
+  --cm-rule-footer: 8px solid var(--cm-lime);
+  --cm-marker-size: 12px;   /* lime square beside kickers and section titles, 1px black outline */
+
+  /* Radius: none. CityMood is square-cornered by design. */
+  --cm-radius: 0;
+}
+
+@media (min-width: 640px) {
+  :root { --cm-gutter: 24px; }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --cm-fs-lead: 50px;       --cm-lh-lead: 1.05;
+    --cm-fs-feature: 40px;    --cm-lh-feature: 1.08;
+    --cm-fs-band: 44px;
+    --cm-fs-card-lg: 30px;    --cm-lh-card-lg: 1.1;
+    --cm-fs-card: 22px;
+    --cm-fs-list: 19px;
+    --cm-fs-standfirst: 20px;
+    --cm-fs-summary: 17px;
+    --cm-fs-section: 22px;
+    --cm-fs-kicker: 14px;
+    --cm-fs-meta: 14px;
+    --cm-fs-nav: 16px;
+  }
+}
+
+/*
+  Tailwind v4 theme mapping. Utilities resolve to the --cm-* variables above,
+  so tokens.css stays the single source of truth (bg-cm-lime, text-cm-meta,
+  font-serif, text-cm-lead, max-w-cm, ...). Spacing needs no mapping: Tailwind's
+  4px --spacing base already matches --cm-space-* (p-4 = 16px, p-7 = 28px).
+*/
+@theme inline {
+  --color-cm-lime: var(--cm-lime);
+  --color-cm-black: var(--cm-black);
+  --color-cm-white: var(--cm-white);
+  --color-cm-paper: var(--cm-paper);
+  --color-cm-rule: var(--cm-rule);
+  --color-cm-rule-dark: var(--cm-rule-dark);
+  --color-cm-meta: var(--cm-meta);
+  --color-cm-meta-dark: var(--cm-meta-on-dark);
+  --color-cm-ink: var(--cm-ink-soft);
+  --color-cm-ad-border: var(--cm-ad-border);
+  --color-cm-nav-active: var(--cm-admin-nav-active);
+
+  --font-serif: var(--cm-font-serif);
+  --font-sans: var(--cm-font-sans);
+
+  --text-cm-lead: var(--cm-fs-lead);
+  --text-cm-lead--line-height: var(--cm-lh-lead);
+  --text-cm-feature: var(--cm-fs-feature);
+  --text-cm-feature--line-height: var(--cm-lh-feature);
+  --text-cm-band: var(--cm-fs-band);
+  --text-cm-band--line-height: var(--cm-lh-band);
+  --text-cm-card-lg: var(--cm-fs-card-lg);
+  --text-cm-card-lg--line-height: var(--cm-lh-card-lg);
+  --text-cm-card: var(--cm-fs-card);
+  --text-cm-card--line-height: var(--cm-lh-card);
+  --text-cm-list: var(--cm-fs-list);
+  --text-cm-list--line-height: var(--cm-lh-list);
+  --text-cm-standfirst: var(--cm-fs-standfirst);
+  --text-cm-standfirst--line-height: var(--cm-lh-standfirst);
+  --text-cm-summary: var(--cm-fs-summary);
+  --text-cm-summary--line-height: var(--cm-lh-summary);
+  --text-cm-section: var(--cm-fs-section);
+  --text-cm-kicker: var(--cm-fs-kicker);
+  --text-cm-metadata: var(--cm-fs-meta); /* not text-cm-meta: that name is the colour */
+  --text-cm-nav: var(--cm-fs-nav);
+  --text-cm-label: var(--cm-fs-label);
+
+  --tracking-cm-caps: var(--cm-tracking-caps);
+  --tracking-cm-tagline: var(--cm-tracking-tagline);
+
+  --container-cm: var(--cm-container);
+}
+
+@theme {
+  /* Spec breakpoints, in px to match DESIGN_SPEC.md */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  /* Brand: square corners, no shadows. Removes the rounded-* and shadow-* scales. */
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-radius: var(--cm-radius);
+  }
+
+  body {
+    background: var(--cm-white);
+    color: var(--cm-black);
+    font-family: var(--cm-font-sans);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Focus: 3px black outline on light backgrounds, lime inside dark areas. */
+  :focus-visible {
+    outline: 3px solid var(--cm-focus-on-light);
+    outline-offset: 2px;
+  }
+
+  .cm-on-dark :focus-visible {
+    outline-color: var(--cm-focus-on-dark);
+  }
+}
+
+@layer components {
+  /* First focusable element on every page; hidden until focused. Black on lime fill. */
+  .cm-skip-link {
+    position: absolute;
+    top: var(--cm-space-2);
+    left: var(--cm-gutter);
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--cm-tap);
+    padding: 0 var(--cm-space-4);
+    background: var(--cm-lime);
+    color: var(--cm-black);
+    font-family: var(--cm-font-sans);
+    font-weight: 700;
+    text-decoration: underline;
+    transform: translateY(-200%);
+  }
+
+  .cm-skip-link:focus-visible {
+    transform: none;
+    outline-color: var(--cm-black);
+  }
+}

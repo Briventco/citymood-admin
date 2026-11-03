@@ -1,0 +1,82 @@
+/*
+  Newsroom-only styles. Everything else in the admin is Tailwind utilities on the
+  shared tokens in globals.css. These cover markup we don't render ourselves:
+  the Tiptap editor's content and the preview page's body_html.
+*/
+
+@layer components {
+  /* Story body, as editors write it and as the preview renders it. Sans, not
+     serif: the brand keeps Source Serif for headlines (OPEN_QUESTIONS.md). */
+  .cm-prose {
+    font-family: var(--cm-font-sans);
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--cm-black);
+  }
+
+  .cm-prose > * + * {
+    margin-top: var(--cm-space-4);
+  }
+
+  .cm-prose h2 {
+    margin-top: var(--cm-space-6);
+    font-family: var(--cm-font-sans);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .cm-prose a {
+    text-decoration: underline;
+  }
+
+  .cm-prose blockquote {
+    border-left: 4px solid var(--cm-lime);
+    padding-left: var(--cm-space-4);
+    font-style: italic;
+  }
+
+  .cm-prose ul {
+    list-style: square;
+    padding-left: var(--cm-space-6);
+  }
+
+  .cm-prose li + li {
+    margin-top: var(--cm-space-2);
+  }
+
+  .cm-prose img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Mobile quick publish: the story box reads like a plain text field. */
+  .cm-prose-compact {
+    font-family: var(--cm-font-sans);
+    font-size: 17px;
+    line-height: 1.5;
+  }
+
+  .cm-prose-compact > * + * {
+    margin-top: var(--cm-space-3);
+  }
+
+  /* Tiptap's editable area */
+  .cm-editor .ProseMirror {
+    min-height: 260px;
+    outline: none;
+  }
+
+  .cm-editor .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    color: var(--cm-meta);
+    pointer-events: none;
+  }
+
+  .cm-editor .ProseMirror-selectednode {
+    outline: 3px solid var(--cm-lime);
+  }
+}
