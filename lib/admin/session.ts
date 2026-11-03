@@ -61,7 +61,7 @@ export const getStaff = cache(async (): Promise<StaffContext | null> => {
 /** For pages: sends anyone without an active staff session to the sign-in screen. */
 export async function requireStaff(): Promise<StaffContext> {
   const staff = await getStaff();
-  if (!staff) redirect("/admin/sign-in");
+  if (!staff) redirect("/sign-in");
   return staff;
 }
 
