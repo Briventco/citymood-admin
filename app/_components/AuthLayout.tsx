@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { site } from "@/config/site";
 import { Logo } from "@/app/components/shell/Logo";
 
 // Sign-in split layout (sign-in-1440.png): black brand panel with an 8px lime
@@ -18,9 +18,9 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         </div>
         <p className="text-sm text-cm-meta-dark">
           For CityMood staff only. Readers can go to the{" "}
-          <Link href="/" className="font-bold text-cm-white underline">
+          <a href={site.url} className="font-bold text-cm-white underline">
             homepage
-          </Link>
+          </a>
           .
         </p>
       </div>

@@ -47,13 +47,13 @@ describe("story body HTML", () => {
         ] },
         { type: "blockquote", content: [{ type: "paragraph", content: [{ type: "text", text: "q" }] }] },
         { type: "bulletList", content: [{ type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "i" }] }] }] },
-        { type: "image", attrs: { src: "/uploads/2026/10/a.webp", alt: "A \"boat\"" } },
+        { type: "image", attrs: { src: "https://example.supabase.co/storage/v1/object/public/article-media/2026/10/a.webp", alt: "A \"boat\"" } },
       ],
     });
     expect(html).toBe(
       '<h2>Sub</h2><p><strong>bold</strong><a href="https://example.com/?a=1&amp;b=2" rel="noopener"> link</a></p>' +
         "<blockquote><p>q</p></blockquote><ul><li><p>i</p></li></ul>" +
-        '<img src="/uploads/2026/10/a.webp" alt="A &quot;boat&quot;" loading="lazy">',
+        '<img src="https://example.supabase.co/storage/v1/object/public/article-media/2026/10/a.webp" alt="A &quot;boat&quot;" loading="lazy">',
     );
   });
 
@@ -88,8 +88,8 @@ describe("imageInfo", () => {
   it("reads PNG and JPEG sizes and rejects other files", async () => {
     const { imageInfo } = await import("./image-size");
     const fs = await import("node:fs");
-    const jpeg = new Uint8Array(fs.readFileSync("public/seed/landscape-1.jpg"));
-    expect(imageInfo(jpeg)).toMatchObject({ type: "image/jpeg", width: 1800, height: 1200 });
+    const jpeg = new Uint8Array(fs.readFileSync("docs/design/assets/badagry-performers.jpg"));
+    expect(imageInfo(jpeg)).toMatchObject({ type: "image/jpeg", width: 2048, height: 941 });
     const png = new Uint8Array(fs.readFileSync("public/citymood-logo.png"));
     expect(imageInfo(png)).toMatchObject({ type: "image/png", width: 1280, height: 1259 });
     expect(imageInfo(new TextEncoder().encode("<svg onload=alert(1)>"))).toBeNull();

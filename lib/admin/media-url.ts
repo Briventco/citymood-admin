@@ -1,12 +1,10 @@
 import type { Media } from "./types";
 
-// Public URL for a file in the "media" bucket. The dev store keeps uploads in
-// public/uploads/ and the seed photos in public/seed/. With Supabase this
-// becomes `${SUPABASE_URL}/storage/v1/object/public/media/${storage_path}`.
+export const MEDIA_BUCKET = "article-media";
 
+/** Public URL for a file in the storage bucket. */
 export function mediaUrl(storagePath: string): string {
-  if (storagePath.startsWith("seed/")) return `/${storagePath}`;
-  return `/uploads/${storagePath}`;
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${MEDIA_BUCKET}/${storagePath}`;
 }
 
 export const mediaSrc = (m: Pick<Media, "storage_path">) => mediaUrl(m.storage_path);

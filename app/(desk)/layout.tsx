@@ -1,4 +1,3 @@
-import { demoMode } from "@/lib/admin/backend";
 import { requireStaff } from "@/lib/admin/session";
 import { AdminSidebar } from "../_components/AdminSidebar";
 
@@ -10,7 +9,7 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
       <a href="#admin-main" className="cm-skip-link">
         Skip to main content
       </a>
-      <AdminSidebar name={me.full_name || me.email} can={can} demo={demoMode} />
+      <AdminSidebar name={me.full_name || me.email} can={can} />
       <main id="admin-main" className="min-w-0 flex-1">
         {children}
       </main>

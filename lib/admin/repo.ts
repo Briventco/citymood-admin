@@ -1,6 +1,5 @@
 import type {
   AdCampaign,
-  AdSlot,
   Article,
   ArticleStatus,
   Category,
@@ -16,10 +15,8 @@ import type {
   Uuid,
 } from "./types";
 
-// The newsroom data layer. Screens and server actions only talk to these two
-// interfaces. Today they are backed by the dev JSON store (./dev-store); a
-// Supabase adapter will implement the same methods, with RLS doing the job the
-// dev store's policies.ts does now.
+// The newsroom data layer. Screens and server actions only talk to this
+// interface; ./supabase/repo.ts implements it, with RLS enforcing the role rules.
 //
 // A NewsroomRepo is bound to one signed-in user, like a Supabase client carrying
 // that user's session. It never trusts the caller for identity or role.
@@ -35,14 +32,17 @@ export type Permissions = {
   role: StaffRole;
   /** Feature stories, change bylines, unpublish, run the Front page, tidy tags, delete stories and media. */
   editor: boolean;
-  /** Staff, categories, ad campaigns, site settings. */
+  /** Staff, categories, site settings. */
   admin: boolean;
+  /** Ad campaigns: admins, and staff holding the live ad_manager role. */
+  ads: boolean;
 };
 
 export const permissionsFor = (role: StaffRole): Permissions => ({
   role,
   editor: role === "editor" || role === "admin",
   admin: role === "admin",
+  ads: role === "admin",
 });
 
 // ───────────── Articles ─────────────
@@ -109,7 +109,8 @@ export type MediaItem = Media & { uploader_name: string | null; used_by: number;
 
 export type MediaWrite = Partial<Pick<Media, "alt" | "caption" | "credit" | "focal_x" | "focal_y">>;
 
-export type NewMedia = Pick<Media, "storage_path" | "width" | "height"> & Partial<Pick<Media, "alt" | "caption" | "credit">>;
+export type NewMedia = Pick<Media, "storage_path" | "width" | "height"> &
+  Partial<Pick<Media, "alt" | "caption" | "credit">> & { mime_type: string; byte_size: number };
 
 export type CategoryItem = Category & { article_count: number };
 export type TagItem = Tag & { article_count: number };
@@ -189,26 +190,4 @@ export interface NewsroomRepo {
 
   getSettings(): Promise<SiteSettings>;
   updateSettings(input: Partial<Omit<SiteSettings, "id">>): Promise<SiteSettings>;
-}
-
-// ───────────── Public reads (anon, like the Supabase anon key) ─────────────
-
-export type PublicArticle = Article & {
-  category: Category | null;
-  author_name: string | null;
-  image: Media | null;
-  tag_names: string[];
-};
-
-export type PublicCampaign = AdCampaign & { desktop: Media | null; mobile: Media | null };
-
-export interface NewsroomPublicReader {
-  /** The live_articles view, newest first. */
-  liveArticles(now: Date): Promise<PublicArticle[]>;
-  /** Visible categories, in position order. */
-  categories(): Promise<Category[]>;
-  frontPage(): Promise<{ pins: FrontPagePin[]; picks: MostReadPick[] }>;
-  /** Campaigns running now, for one slot or all. */
-  runningCampaigns(now: Date, slot?: AdSlot): Promise<PublicCampaign[]>;
-  settings(): Promise<SiteSettings>;
 }

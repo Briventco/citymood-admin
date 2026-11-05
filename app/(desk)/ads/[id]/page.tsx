@@ -17,7 +17,7 @@ export default async function CampaignPage({
 }) {
   const { id } = await params;
   const { repo, can } = await requireStaff();
-  if (!can.admin) {
+  if (!can.ads) {
     return (
       <div className={pageClass}>
         <PermissionDenied need="Ad campaigns are managed by admins." />

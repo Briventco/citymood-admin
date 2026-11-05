@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     // render-blocking request, which helps LCP for first visits on mobile data.
     inlineCss: true,
     // Newsroom photo uploads. Browsers resize to 2000px WebP first (usually
-    // under 1 MB); the server still enforces its own 10 MB limit and message.
+    // under 1 MB); the server and the storage bucket both enforce 5 MB.
     serverActions: { bodySizeLimit: "11mb" },
   },
   images: {
