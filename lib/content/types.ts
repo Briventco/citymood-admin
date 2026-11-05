@@ -1,5 +1,5 @@
 // CityMood content model. The repository in ./index.ts is the only thing the UI
-// imports, so a CMS can replace the seed adapter without touching components.
+// imports, so the data source can change without touching components.
 
 export type Category = {
   slug: string;
@@ -82,7 +82,7 @@ export type SiteSettings = {
   social: { network: string; label: string; url: string }[];
 };
 
-/** Where content comes from: the newsroom store, the seed (demos and tests), or nothing. */
+/** What the public site reads, implemented on Supabase by server/content/supabase.ts. */
 export type ContentSource = {
   categories(): Promise<Category[]>;
   /** Every article, any order. The repository filters and sorts. */

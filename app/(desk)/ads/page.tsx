@@ -16,7 +16,7 @@ const state = (c: CampaignItem, now: number) =>
 
 export default async function AdsPage() {
   const { repo, can } = await requireStaff();
-  if (!can.editor) {
+  if (!can.editor && !can.ads) {
     return (
       <div className={pageClass}>
         <PermissionDenied need="Ad campaigns are managed by admins." />
@@ -30,9 +30,9 @@ export default async function AdsPage() {
     <div className={pageClass}>
       <PageHeader
         title="Ad campaigns"
-        note={can.admin ? "Direct-sold campaigns per slot. Changes show without a redeploy." : "Only admins can change campaigns"}
+        note={can.ads ? "Direct-sold campaigns per slot. Changes show without a redeploy." : "Only admins can change campaigns"}
         actions={
-          can.admin && (
+          can.ads && (
             <Link href="/ads/new" className={button.primary}>
               <Plus aria-hidden="true" className="size-4" strokeWidth={2.6} />
               Add campaign
@@ -64,7 +64,7 @@ export default async function AdsPage() {
                       <li key={c.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-cm-rule px-4 py-3 last:border-b-0">
                         <Thumb media={c.desktop ?? c.mobile} className="h-[43px] w-24" sizes="96px" />
                         <div className="min-w-0 flex-[1_1_200px]">
-                          {can.admin ? (
+                          {can.ads ? (
                             <Link href={`/ads/${c.id}`} className="text-base font-bold hover:underline">
                               {c.advertiser_name}
                             </Link>

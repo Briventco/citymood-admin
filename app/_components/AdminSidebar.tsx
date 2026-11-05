@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Image as ImageIcon, LayoutPanelTop, Menu, Plus, Settings, Tag, User, X } from "lucide-react";
+import { FileText, Image as ImageIcon, LayoutPanelTop, Menu, Plus, Settings, Tag, User, X, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -8,8 +8,9 @@ import { Logo } from "@/app/components/shell/Logo";
 import type { Permissions } from "@/lib/admin/repo";
 import { initials } from "@/lib/admin/text";
 import type { StaffRole } from "@/lib/admin/types";
-import { demoSignIn, signOut } from "../auth-actions";
-import { Avatar, button } from "./ui";
+import { site } from "@/config/site";
+import { signOut } from "../auth-actions";
+import { Avatar } from "./ui";
 
 // ADMIN_SPEC §4 AdminSidebar: black, logo at 72px with "NEWSROOM" in lime, a lime
 // "New article" button, nav with the active item marked by a 4px lime left border
@@ -22,15 +23,16 @@ const NAV = [
   { href: "/front-page", label: "Front page", icon: LayoutPanelTop, show: (c: Permissions) => c.editor, also: ["/ads"] },
   { href: "/media", label: "Media library", icon: ImageIcon, show: () => true },
   { href: "/taxonomy", label: "Categories and tags", icon: Tag, show: (c: Permissions) => c.editor },
+  { href: "/ads", label: "Ad campaigns", icon: Megaphone, show: (c: Permissions) => c.ads && !c.editor },
   { href: "/staff", label: "Staff", icon: User, show: (c: Permissions) => c.admin },
   { href: "/settings", label: "Settings", icon: Settings, show: (c: Permissions) => c.admin },
 ];
 
 const ROLE_LABEL: Record<StaffRole, string> = { reporter: "Reporter", editor: "Editor", admin: "Admin" };
 
-type Props = { name: string; can: Permissions; demo: boolean };
+type Props = { name: string; can: Permissions };
 
-export function AdminSidebar({ name, can, demo }: Props) {
+export function AdminSidebar({ name, can }: Props) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [lastPath, setLastPath] = useState(pathname);
@@ -40,7 +42,7 @@ export function AdminSidebar({ name, can, demo }: Props) {
     setOpen(false);
   }
   // The editor has its own full-screen header below 768px (quick publish).
-  const inEditor = /^\/admin\/articles\/[^/]+$/.test(pathname);
+  const inEditor = /^\/articles\/[^/]+$/.test(pathname);
 
   return (
     // The outer column runs the full page height; the inner panel stays in view.
@@ -104,29 +106,15 @@ export function AdminSidebar({ name, can, demo }: Props) {
               </div>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 text-sm">
-              <Link href="/" className="inline-flex min-h-11 items-center font-bold text-cm-white underline">
+              <a href={site.url} className="inline-flex min-h-11 items-center font-bold text-cm-white underline">
                 View live site
-              </Link>
+              </a>
               <form action={signOut}>
                 <button type="submit" className="inline-flex min-h-11 items-center font-bold text-cm-white underline">
                   Sign out
                 </button>
               </form>
             </div>
-            {demo && (
-              <div className="mt-2 border border-dashed border-cm-meta-dark p-2.5">
-                <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-cm-meta-dark">Demo: switch role</p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {(["reporter", "editor", "admin"] as const).map((role) => (
-                    <form key={role} action={demoSignIn.bind(null, role)}>
-                      <button type="submit" aria-pressed={can.role === role} className={`${button.onDarkOutline} px-2 text-[13px] aria-pressed:bg-cm-white aria-pressed:text-cm-black`}>
-                        {ROLE_LABEL[role]}
-                      </button>
-                    </form>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

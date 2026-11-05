@@ -10,7 +10,7 @@ export function makeArticle(overrides: Partial<Article> = {}): Article {
     title: `Story ${n}`,
     standfirst: "Standfirst.",
     body: "Body.",
-    image: { src: `/seed/landscape-1.jpg`, alt: "Alt", width: 1800, height: 1200 },
+    image: { src: "/test.jpg", alt: "Alt", width: 1800, height: 1200 },
     category: "local-news",
     tags: [],
     author: "Test Author",

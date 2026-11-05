@@ -1,11 +1,7 @@
 import type { Article, Category } from "@/lib/content";
 import type { ContentSource } from "@/lib/content/types";
 
-/**
- * Stable backend read ports. The current seed/empty adapters implement the
- * smaller ContentSource contract; database-backed repositories can implement
- * these operations without changing public components.
- */
+/** Read operations on top of ContentSource, implemented by server/content/supabase.ts. */
 export type PublishedArticleQuery = {
   categorySlug?: string;
   cursor?: string;

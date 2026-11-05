@@ -1,6 +1,5 @@
-// Row types for the newsroom database. They mirror docs/design/admin/schema.sql
-// column for column (snake_case, nullability, enums), so a Supabase adapter can
-// use generated types in their place without the screens changing.
+// The newsroom's types, as the screens see them. The live Supabase columns differ
+// in places (title for headline, for example); ./supabase/map.ts translates.
 // Timestamps are ISO 8601 strings, as supabase-js returns them.
 
 export type Uuid = string;
@@ -49,7 +48,7 @@ export type Tag = {
 
 export type Media = {
   id: Uuid;
-  /** Path inside the "media" bucket, e.g. 2026/10/<uuid>.webp. */
+  /** Path inside the "article-media" bucket, e.g. 2026/10/<uuid>.webp. */
   storage_path: string;
   width: number | null;
   height: number | null;
@@ -85,11 +84,6 @@ export type Article = {
   updated_by: Uuid | null;
   created_at: Timestamp;
   updated_at: Timestamp;
-};
-
-export type ArticleTag = {
-  article_id: Uuid;
-  tag_id: Uuid;
 };
 
 export type FrontPagePin = {
@@ -129,31 +123,3 @@ export type SiteSettings = {
   instagram_url: string;
   tiktok_url: string;
 };
-
-/** The subset of Supabase's auth.users that the newsroom reads. */
-export type AuthUser = {
-  id: Uuid;
-  email: string;
-  raw_user_meta_data: { full_name?: string };
-  invited_at: Timestamp | null;
-  last_sign_in_at: Timestamp | null;
-  created_at: Timestamp;
-};
-
-export type Tables = {
-  auth_users: AuthUser;
-  profiles: Profile;
-  categories: Category;
-  tags: Tag;
-  media: Media;
-  articles: Article;
-  article_tags: ArticleTag;
-  front_page_pins: FrontPagePin;
-  most_read_picks: MostReadPick;
-  ad_campaigns: AdCampaign;
-  site_settings: SiteSettings;
-};
-
-export type TableName = keyof Tables;
-
-export type Database = { [T in TableName]: Tables[T][] };

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { site } from "@/config/site";
 import { getHomepage, type Article } from "@/lib/content";
 import { AD_SLOT_INFO, slotSizes } from "@/lib/admin/ad-slots";
 import type { CampaignItem } from "@/lib/admin/repo";
@@ -63,11 +64,11 @@ export default async function FrontPagePage() {
     <div className={pageClass}>
       <PageHeader
         title="Front page"
-        note="Changes show on the homepage straight away"
+        note="Changes reach the homepage within two minutes"
         actions={
-          <Link href="/" target="_blank" className={button.secondary}>
+          <a href={site.url} target="_blank" rel="noreferrer" className={button.secondary}>
             View homepage<span className="sr-only"> (opens in a new tab)</span>
-          </Link>
+          </a>
         }
       />
       <div className="flex flex-wrap items-start gap-6">

@@ -35,11 +35,10 @@ export function safeHref(href: unknown): string | null {
   return null;
 }
 
-/** Inline images come from the media library: local uploads, seed files, or https storage. */
+/** Inline images come from the media library, on https storage. */
 export function safeImageSrc(src: unknown): string | null {
   if (typeof src !== "string") return null;
   const s = src.trim();
-  if (/^\/(uploads|seed)\/[\w\-./]+$/.test(s) && !s.includes("..")) return s;
   if (/^https:\/\//i.test(s)) return s;
   return null;
 }
