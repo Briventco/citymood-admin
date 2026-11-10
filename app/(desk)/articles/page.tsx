@@ -1,14 +1,12 @@
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ArticleListQuery, ArticleSummary } from "@/lib/admin/repo";
+import type { ArticleListQuery } from "@/lib/admin/repo";
 import { requireStaff } from "@/lib/admin/session";
-import { effectiveStatus, isBreakingNow } from "@/lib/admin/status";
-import { formatListTime } from "@/lib/admin/time";
 import { ARTICLE_STATUSES, type ArticleStatus } from "@/lib/admin/types";
 import { AutoSubmitSelect } from "../../_components/AutoSubmitSelect";
-import { Thumb } from "../../_components/Thumb";
-import { EmptyState, Flag, PageHeader, StatusLabel, button, inputClass, pageClass, selectClass } from "../../_components/ui";
+import { EmptyState, Notice, PageHeader, button, inputClass, pageClass, selectClass } from "../../_components/ui";
+import { ArticlesList } from "./ArticlesList";
 
 export const metadata: Metadata = { title: "Articles" };
 
@@ -28,46 +26,17 @@ const EMPTY: Record<ArticleStatus | "all", string> = {
   unpublished: "No unpublished stories.",
 };
 
-type Search = { status?: string; q?: string; category?: string; author?: string; page?: string };
+type Search = { status?: string; q?: string; category?: string; author?: string; page?: string; deleted?: string };
 
 const one = (v: string | undefined) => (v && v.trim() ? v.trim() : undefined);
 
 function href(params: Search, change: Partial<Search>) {
-  const next = { ...params, ...change };
+  const next = { ...params, ...change, deleted: undefined };
   const qs = new URLSearchParams(
     Object.entries(next).filter((e): e is [string, string] => !!e[1] && !(e[0] === "status" && e[1] === "all")),
   );
   return `/articles${qs.size ? `?${qs}` : ""}`;
 }
-
-function Flags({ a, now }: { a: ArticleSummary; now: Date }) {
-  const breaking = a.breaking && (!a.live || isBreakingNow(a, now));
-  if (!breaking && !a.featured) return null;
-  return (
-    <span className="mt-1 flex flex-wrap gap-1.5">
-      {breaking && <Flag>Breaking</Flag>}
-      {a.featured && <Flag>Featured</Flag>}
-    </span>
-  );
-}
-
-function Headline({ a }: { a: ArticleSummary }) {
-  const text = a.headline || "Untitled draft";
-  const cls = "font-serif text-[17px] leading-tight font-semibold";
-  return a.can_edit ? (
-    <Link href={`/articles/${a.id}`} className={`${cls} hover:underline`}>
-      {text}
-    </Link>
-  ) : (
-    <span className={cls}>
-      {text}
-      <span className="sr-only"> (you can’t edit this story)</span>
-    </span>
-  );
-}
-
-const when = (a: ArticleSummary, now: Date) =>
-  formatListTime(a.status === "scheduled" && a.publish_at ? a.publish_at : a.updated_at, now);
 
 export default async function ArticlesPage({ searchParams }: { searchParams: Promise<Search> }) {
   const { repo, can } = await requireStaff();
@@ -157,77 +126,34 @@ export default async function ArticlesPage({ searchParams }: { searchParams: Pro
       </form>
 
       {list.items.length === 0 ? (
-        <EmptyState
-          action={
-            filtered ? (
-              <Link href={href({}, { status })} className={button.secondary}>
-                Clear search and filters
-              </Link>
-            ) : status === "all" || status === "draft" ? (
-              <Link href="/articles/new" className={button.primary}>
-                New article
-              </Link>
-            ) : undefined
-          }
-        >
-          {filtered ? "No stories match your search and filters." : EMPTY[status]}
-        </EmptyState>
-      ) : (
         <>
-          {/* From 768px: the table in the reference. */}
-          <div className="hidden relative overflow-x-auto border border-cm-rule bg-cm-white md:block">
-            <table className="w-full min-w-[760px] border-collapse text-[15px]">
-              <caption className="sr-only">Stories, most recently changed first</caption>
-              <thead>
-                <tr className="border-b-2 border-cm-black text-left text-xs font-extrabold uppercase tracking-[0.1em]">
-                  <th scope="col" className="px-4 py-3">Story</th>
-                  <th scope="col" className="px-3 py-3">Category</th>
-                  <th scope="col" className="px-3 py-3">Author</th>
-                  <th scope="col" className="px-3 py-3">Status</th>
-                  <th scope="col" className="px-4 py-3">Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.items.map((a) => (
-                  <tr key={a.id} className="border-b border-cm-rule last:border-b-0">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3.5">
-                        <Thumb media={a.image} />
-                        <div className="min-w-0">
-                          <Headline a={a} />
-                          <Flags a={a} now={now} />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap">{a.category_name ?? <span className="text-cm-meta">None</span>}</td>
-                    <td className="px-3 py-3 whitespace-nowrap">{a.author_name ?? "—"}</td>
-                    <td className="px-3 py-3"><StatusLabel status={effectiveStatus(a, now)} /></td>
-                    <td className="px-4 py-3 whitespace-nowrap text-cm-meta">{when(a, now)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Below 768px: one story per row, no sideways scrolling. */}
-          <ul className="border border-cm-rule bg-cm-white md:hidden">
-            {list.items.map((a) => (
-              <li key={a.id} className="flex gap-3 border-b border-cm-rule p-3 last:border-b-0">
-                <Thumb media={a.image} />
-                <div className="min-w-0 flex-1">
-                  <Headline a={a} />
-                  <Flags a={a} now={now} />
-                  <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
-                    <StatusLabel status={effectiveStatus(a, now)} />
-                    <span className="text-cm-meta">
-                      {[a.category_name, a.author_name, when(a, now)].filter(Boolean).join(" · ")}
-                    </span>
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {params.deleted === "1" && (
+            <div className="mb-3">
+              <Notice tone="success">Story deleted.</Notice>
+            </div>
+          )}
+          <EmptyState
+            action={
+              filtered ? (
+                <Link href={href({}, { status })} className={button.secondary}>
+                  Clear search and filters
+                </Link>
+              ) : status === "all" || status === "draft" ? (
+                <Link href="/articles/new" className={button.primary}>
+                  New article
+                </Link>
+              ) : undefined
+            }
+          >
+            {filtered ? "No stories match your search and filters." : EMPTY[status]}
+          </EmptyState>
         </>
+      ) : (
+        <ArticlesList
+          items={list.items}
+          nowIso={now.toISOString()}
+          initialNotice={params.deleted === "1" ? "Story deleted." : null}
+        />
       )}
 
       {list.total > 0 && (

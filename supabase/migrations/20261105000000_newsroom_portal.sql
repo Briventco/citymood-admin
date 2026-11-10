@@ -110,17 +110,23 @@ grant select on public.front_page_pins, public.most_read_picks, public.site_sett
 grant insert, update, delete on public.front_page_pins, public.most_read_picks to authenticated;
 grant update on public.site_settings to authenticated;
 
+drop policy if exists pins_read on public.front_page_pins;
 create policy pins_read on public.front_page_pins for select to anon, authenticated using (true);
+drop policy if exists pins_write on public.front_page_pins;
 create policy pins_write on public.front_page_pins for all to authenticated
   using (public.has_permission('article:feature'))
   with check (public.has_permission('article:feature'));
 
+drop policy if exists picks_read on public.most_read_picks;
 create policy picks_read on public.most_read_picks for select to anon, authenticated using (true);
+drop policy if exists picks_write on public.most_read_picks;
 create policy picks_write on public.most_read_picks for all to authenticated
   using (public.has_permission('article:feature'))
   with check (public.has_permission('article:feature'));
 
+drop policy if exists settings_read on public.site_settings;
 create policy settings_read on public.site_settings for select to anon, authenticated using (true);
+drop policy if exists settings_write on public.site_settings;
 create policy settings_write on public.site_settings for update to authenticated
   using (public.has_permission('system:manage'))
   with check (public.has_permission('system:manage'));
@@ -148,24 +154,30 @@ as $$
 $$;
 
 -- Bylines, the staff list and the author filter need colleagues' names and roles.
+drop policy if exists profiles_read_staff on public.profiles;
 create policy profiles_read_staff on public.profiles for select to authenticated
   using (public.has_permission('media:upload'));
+drop policy if exists user_roles_read_staff on public.user_roles;
 create policy user_roles_read_staff on public.user_roles for select to authenticated
   using (public.has_permission('media:upload'));
 
 -- Any writer can create a tag while filing a story. Renaming and merging stay with editors.
+drop policy if exists tags_insert_staff on public.tags;
 create policy tags_insert_staff on public.tags for insert to authenticated
   with check (public.has_permission('article:create'));
 
 -- Editors delete any story.
+drop policy if exists articles_delete_editor on public.articles;
 create policy articles_delete_editor on public.articles for delete to authenticated
   using (public.has_permission('article:edit:any'));
 
 -- The media library is shared, so all staff see every photo.
+drop policy if exists article_media_read_staff on public.article_media;
 create policy article_media_read_staff on public.article_media for select to authenticated
   using (public.has_permission('media:upload'));
 
 -- Readers need photos chosen from the library, which have no article_id, and ad creatives.
+drop policy if exists article_media_read_featured on public.article_media;
 create policy article_media_read_featured on public.article_media for select to anon, authenticated
   using (
     exists (
@@ -175,6 +187,7 @@ create policy article_media_read_featured on public.article_media for select to 
     )
   );
 
+drop policy if exists article_media_read_running_ads on public.article_media;
 create policy article_media_read_running_ads on public.article_media for select to anon, authenticated
   using (
     exists (
