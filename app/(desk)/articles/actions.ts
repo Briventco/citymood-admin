@@ -112,3 +112,11 @@ export async function deleteArticle(id: string) {
   if (result.ok) redirect("/articles?deleted=1");
   return result;
 }
+
+export async function removeArticles(ids: string[]) {
+  return staffAction(async ({ repo }) => {
+    const deleted = await repo.deleteArticles(ids);
+    revalidatePath("/", "layout");
+    return { deleted };
+  });
+}

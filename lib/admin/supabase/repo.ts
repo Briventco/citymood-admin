@@ -188,6 +188,8 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
     if ((await staff()).role !== "admin") throw forbidden(message);
   };
   const canEdit = (role: StaffRole, a: Pick<Article, "author_id">) => role !== "reporter" || a.author_id === uid;
+  const canDelete = (role: StaffRole, a: { author_id: Uuid | null; status: string }) =>
+    role !== "reporter" || (a.author_id === uid && a.status === "draft");
 
   // ───────────── Reads shared between methods ─────────────
 
@@ -229,6 +231,7 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
         image: (a.featured_image_id && media.get(a.featured_image_id)) || null,
         live: isLive(a, now),
         can_edit: canEdit(role, a),
+        can_delete: canDelete(role, r),
       };
     });
   };
@@ -254,7 +257,7 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
       author: author?.data ? { id: author.data.id, full_name: author.data.display_name } : null,
       live: isLive(a, new Date()),
       can_edit: canEdit(role, a),
-      can_delete: role !== "reporter" || (a.author_id === uid && a.status === "draft"),
+      can_delete: canDelete(role, row),
     };
   };
 
@@ -324,6 +327,19 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
       invalid: "Check the story's details and try again.",
     });
     if (!rows?.length) throw forbidden("You can only edit your own stories.");
+  };
+
+  /**
+   * Keeps article_media.article_id populated for unlinked library photos so the
+   * deployed public site's embedded article_media(...) query still shows them.
+   */
+  const syncMediaLink = async (articleId: Uuid, nextMediaId: Uuid | null, prevMediaId: Uuid | null) => {
+    if (prevMediaId && prevMediaId !== nextMediaId) {
+      await client.from("article_media").update({ article_id: null }).eq("id", prevMediaId).eq("article_id", articleId);
+    }
+    if (nextMediaId) {
+      await client.from("article_media").update({ article_id: articleId }).eq("id", nextMediaId).is("article_id", null);
+    }
   };
 
   const audit = async (action: string, entityId: Uuid, after: Record<string, unknown>) => {
@@ -497,6 +513,9 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
         if (error) raise(error, { denied: "You don't have permission to create stories." });
         // The insert policy requires your own byline, so an editor's chosen byline follows.
         if (typeof byline === "string" && byline !== uid) await updateRow(data.id, { author_id: byline });
+        if (typeof columns.featured_image_id === "string") {
+          await syncMediaLink(data.id, columns.featured_image_id, null);
+        }
         if (input.tags) await setTags(data.id, input.tags);
         return detail(data.id);
       }
@@ -517,6 +536,11 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
       if (Object.keys(columns).length) {
         const { error } = await client.from("articles").update(columns).eq("id", id);
         if (error) raise(error, { conflict: "That web address is already taken. Choose another.", denied: "You can only edit your own stories." });
+      }
+      const nextMediaId =
+        columns.featured_image_id !== undefined ? ((columns.featured_image_id as Uuid | null) ?? null) : current.featured_image_id;
+      if (columns.featured_image_id !== undefined || nextMediaId) {
+        await syncMediaLink(id, nextMediaId, current.featured_image_id);
       }
       if (input.tags) await setTags(id, input.tags);
       return detail(id);
@@ -542,6 +566,7 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
       // Breaking runs for 6 hours from go-live, so restart the window (the trigger fills it in).
       if (a.breaking) columns.breaking_until = null;
       await updateRow(id, columns);
+      if (a.featured_image_id) await syncMediaLink(id, a.featured_image_id, a.featured_image_id);
       return detail(id);
     },
 
@@ -554,10 +579,33 @@ export function createSupabaseRepo({ client, uid, email, service, setPasswordUrl
     },
 
     async deleteArticle(id) {
-      await staff();
-      await articleRow(id);
+      const { role } = await staff();
+      const row = await articleRow(id);
+      if (!canDelete(role, row)) throw forbidden("Reporters can delete only their own drafts. Ask an editor.");
+      await client.from("article_media").update({ article_id: null }).eq("article_id", id);
       const gone = must(await client.from("articles").delete().eq("id", id).select("id"));
       if (!gone?.length) throw forbidden("Reporters can delete only their own drafts. Ask an editor.");
+    },
+
+    async deleteArticles(ids) {
+      const { role } = await staff();
+      const unique = [...new Set(ids)];
+      if (unique.length === 0) return 0;
+      const rows = must(await client.from("articles").select("id,author_id,status").in("id", unique)) as Pick<
+        ArticleRow,
+        "id" | "author_id" | "status"
+      >[];
+      if (rows.length === 0) return 0;
+      for (const r of rows) {
+        if (!canDelete(role, r)) throw forbidden("Reporters can delete only their own drafts. Ask an editor.");
+      }
+      const targetIds = rows.map((r) => r.id);
+      await client.from("article_media").update({ article_id: null }).in("article_id", targetIds);
+      const gone = must(await client.from("articles").delete().in("id", targetIds).select("id"));
+      if (!gone || gone.length !== targetIds.length) {
+        throw forbidden("Reporters can delete only their own drafts. Ask an editor.");
+      }
+      return gone.length;
     },
 
     async searchLiveArticles(search, limit = 20) {

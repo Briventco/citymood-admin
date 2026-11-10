@@ -70,6 +70,7 @@ export type ArticleSummary = Pick<
   /** Live now: published or scheduled with publish_at in the past. */
   live: boolean;
   can_edit: boolean;
+  can_delete: boolean;
 };
 
 export type ArticleList = {
@@ -144,6 +145,7 @@ export interface NewsroomRepo {
   /** Takes a live story down (editors), or returns a scheduled one to draft. */
   unpublishArticle(id: Uuid): Promise<ArticleDetail>;
   deleteArticle(id: Uuid): Promise<void>;
+  deleteArticles(ids: Uuid[]): Promise<number>;
   /** Live stories for the Front page pickers, newest first. */
   searchLiveArticles(search: string, limit?: number): Promise<ArticleSummary[]>;
   /** Live stories in the breaking ticker, newest first. */
